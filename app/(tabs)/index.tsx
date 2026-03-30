@@ -1,98 +1,132 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+// Home Screen — hero, features, partner link
+import React from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  useColorScheme,
+  TouchableOpacity,
+} from "react-native";
+import { useUser } from "@clerk/clerk-expo";
+import { useRouter, Link } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { MapPin, Briefcase } from "lucide-react-native";
+import Avatar from "@/components/ui/Avatar";
+import HeroSection from "@/components/home/HeroSection";
+import FeatureCards from "@/components/home/FeatureCards";
+import { COLORS } from "@/lib/constants";
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const { user, isSignedIn } = useUser();
+  const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  return (
+    <SafeAreaView
+      style={[
+        styles.safe,
+        {
+          backgroundColor: isDark
+            ? COLORS.dark.background
+            : COLORS.light.background,
+        },
+      ]}
+    >
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Top Header */}
+        <View style={styles.header}>
+          <View style={styles.logoRow}>
+            <MapPin size={24} color={COLORS.primary} />
+            <Text
+              style={[
+                styles.logoText,
+                { color: isDark ? COLORS.dark.text : COLORS.light.text },
+              ]}
+            >
+              SmartPark
+            </Text>
+          </View>
+
+          <View style={styles.headerRight}>
+            <Link href="/owner/sign-up" asChild>
+              <TouchableOpacity style={styles.partnerBtn}>
+                <Briefcase size={14} color={COLORS.primary} />
+                <Text style={styles.partnerText}>Become a Partner</Text>
+              </TouchableOpacity>
+            </Link>
+
+            {isSignedIn ? (
+              <TouchableOpacity onPress={() => router.push("/(tabs)/profile")}>
+                <Avatar name={user?.firstName} size={36} />
+              </TouchableOpacity>
+            ) : (
+              <Link href="/(auth)/sign-in" asChild>
+                <TouchableOpacity>
+                  <Text style={styles.signInText}>Sign In</Text>
+                </TouchableOpacity>
+              </Link>
+            )}
+          </View>
+        </View>
+
+        {/* Hero */}
+        <HeroSection />
+
+        {/* Features */}
+        <FeatureCards />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  safe: { flex: 1 },
+  scrollContent: { flexGrow: 1 },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  logoRow: {
+    flexDirection: "row",
+    alignItems: "center",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  logoText: {
+    fontSize: 20,
+    fontWeight: "800",
+    marginLeft: 6,
+    letterSpacing: -0.5,
+  },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  partnerBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#2563eb30",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    gap: 4,
+  },
+  partnerText: {
+    color: "#2563eb",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  signInText: {
+    color: "#2563eb",
+    fontWeight: "600",
+    fontSize: 14,
   },
 });

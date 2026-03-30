@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(psql \"postgresql://postgres:Hssi1011%26%26@localhost:5432/smartpark\" -c \"SELECT COUNT\\(*\\) as total FROM parking_lots;\")"
+    ]
+  }
+}
